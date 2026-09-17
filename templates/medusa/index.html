@@ -1,0 +1,17 @@
+{% extends 'medusa/base.html' %}
+
+{% block title %}<a href="menu"><h2>Select File</h2></a>{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="divider"></div>
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {%for file in files%}
+            <img src="static/block.svg">
+            <button name="submit" type="submit" value="{{file}}" class="module-btn">{{file}}</button>
+            <div class="divider"></div>
+        {%endfor%}
+    </form>
+</div>
+{% endblock %}

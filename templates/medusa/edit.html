@@ -1,0 +1,15 @@
+{% extends 'medusa/base.html' %}
+
+{% block title %}<h2>Edit {{script}}</h2>{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input id="script_name" name="script_name" type="text" value="{{script}}" required>
+        <textarea id="contents" name="contents">{{file_contents}}</textarea>
+        <button id="submit" name="submit" type="submit" value="save" class="form-btn submit-btn">Save</button>
+        <button id="back" name="back" type="submit" value="back" class="form-btn back-btn">Back</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'medusa/base.html' %}
+
+{% block title %}<h2>Delete {{script}}?</h2>{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button id="delete" name="delete" type="submit" value="delete" class="form-btn submit-btn">Delete</button>
+        <button id="back" name="back" type="submit" value="back" class="form-btn back-btn">Back</button>
+    </form>
+</div>
+{% endblock %}

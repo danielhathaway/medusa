@@ -1,0 +1,19 @@
+{% extends 'medusa/base.html' %}
+
+{% block title %}<a href="/"><h2>Select Function</h2></a>{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="divider"></div>
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="hidden-divider"></div>
+        <img src="static/eye.svg">
+        <button name="add" type="submit" value="add" class="module-btn">Add Script</button>
+        <div class="hidden-divider"></div>
+        <img src="static/eye.svg">
+        <button name="modify" type="submit" value="modify" class="module-btn">Edit Script</button>
+        <div class="hidden-divider"></div>
+    </form>
+</div>
+{% endblock %}
