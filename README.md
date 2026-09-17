@@ -4,7 +4,7 @@
 
 It provides a simple browser-based interface for viewing scripts, running them, creating new scripts, editing existing scripts, deleting scripts, and viewing command output.
 
-Medusa is built with Flask and is designed to be useful on servers where you don't have a desktop environment or don't want to manage scripts exclusively from an SSH session.
+Medusa is built with Flask and is designed to be useful on servers where you don't have a desktop environment or don't want to manage scripts exclusively from an SSH session. It is especially useful in prototyping and development environments.
 
 ## Features
 
