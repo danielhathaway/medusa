@@ -1,0 +1,22 @@
+[project]
+name = "medusa"
+version = "1.0.1"
+authors = [
+  { name="Daniel Hathaway", email="dhathawaycode@proton.me" },
+]
+description = "A scripting UI for headless servers."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "GPL-3.0-or-later"
+license-files = ["LICEN[CS]E*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+]
