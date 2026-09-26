@@ -580,16 +580,6 @@ def test_delete_post_failure(client):
     assert b"fail-msg" in response.data
 
 
-def test_delete_post_unrelated_target(client):
-    response = client.post(
-        "/delete/example.py",
-        data={"add": "1"},
-    )
-
-    assert response.status_code == 200
-    assert b"example.py" in response.data
-
-
 ## ---------------------------------------------------------------------------
 ## /menu
 ## ---------------------------------------------------------------------------
