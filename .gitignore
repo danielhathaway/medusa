@@ -4,4 +4,6 @@
 **/migrations
 **/.pytest_cache
 **/build
+.env
+.env.*
 

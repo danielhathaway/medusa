@@ -1,0 +1,15 @@
+services:
+  medusa:
+    build: .
+    image: medusa:local
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:?Set FLASK_SECRET_KEY in .env or the environment}
+    volumes:
+      - scripts:/app/modules
+
+volumes:
+  scripts:

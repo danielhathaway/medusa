@@ -16,6 +16,7 @@ sys.path.append(parent_dir)
 
 
 from unittest.mock import patch
+import subprocess
 
 import pytest
 
@@ -633,6 +634,34 @@ def test_application_has_expected_routes():
 def test_base_dir_is_defined():
     assert isinstance(medusa.BASE_DIR, str)
     assert medusa.BASE_DIR
+
+
+def test_secret_key_from_environment_survives_process_restart():
+    environment = dict(os.environ, FLASK_SECRET_KEY="persistent-test-key")
+    for _ in range(2):
+        result = subprocess.check_output(
+            [sys.executable, "-c", "import medusa; print(medusa.app.secret_key)"],
+            cwd=parent_dir,
+            env=environment,
+            text=True,
+        )
+        assert result.strip() == "persistent-test-key"
+
+
+def test_secret_key_without_environment_is_generated():
+    environment = dict(os.environ)
+    environment.pop("FLASK_SECRET_KEY", None)
+    keys = [
+        subprocess.check_output(
+            [sys.executable, "-c", "import medusa; print(medusa.app.secret_key)"],
+            cwd=parent_dir,
+            env=environment,
+            text=True,
+        ).strip()
+        for _ in range(2)
+    ]
+    assert all(keys)
+    assert keys[0] != keys[1]
 
 
 def test_medusa_form_can_be_instantiated(client):

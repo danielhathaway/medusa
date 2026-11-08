@@ -19,8 +19,8 @@ from chempy.conf import read_conf
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
-## Generate a new secret key for use until the app is no longer served.
-app.secret_key = secrets.token_hex()
+## Deployments can share a persistent key across workers and restarts.
+app.secret_key = os.environ.get('FLASK_SECRET_KEY') or secrets.token_hex()
 app.add_url_rule('/', endpoint='medusa')
 app.add_url_rule('/medusa', endpoint='medusa')
 app.add_url_rule('/', endpoint='back')

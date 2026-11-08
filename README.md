@@ -68,6 +68,88 @@ Alternatively, the repository includes a `setup.sh` script that installs Python 
 
 > **Note:** `setup.sh` uses `apt` and therefore is intended for Debian-based Linux systems.
 
+## Running with Docker
+
+Docker is an alternative to installing Python and Medusa's dependencies on the host. Install [Docker Engine](https://docs.docker.com/engine/install/) and the [Compose plugin](https://docs.docker.com/compose/install/), then run these commands from the cloned repository.
+
+Generate a persistent Flask secret key once (the following command uses OpenSSL):
+
+```bash
+umask 077
+printf 'FLASK_SECRET_KEY=%s\n' "$(openssl rand -hex 32)" > .env
+docker compose up -d --build
+```
+
+Keep `.env` for subsequent restarts; it is excluded from Git and Docker builds. If you already have a `.env`, add a `FLASK_SECRET_KEY` entry instead of overwriting it.
+
+Open `http://127.0.0.1:8000`. On a headless server, forward the port from your workstation:
+
+```bash
+ssh -L 8000:127.0.0.1:8000 user@your-server
+```
+
+The container uses Gunicorn, runs as the unprivileged user `medusa` (UID/GID `10001`), and publishes port 8000 on host localhost. For remote access, use the SSH tunnel or an authenticated reverse proxy targeting `127.0.0.1:8000`. Medusa has no built-in login and can execute Python code, so restrict access to trusted users.
+
+### Script Storage
+
+Compose creates a named volume mounted at `/app/modules`. It starts empty; add scripts through the UI. Scripts persist across container rebuilds and `docker compose down`. **`docker compose down -v` deletes the script volume.** Back up scripts before removing volumes.
+
+To manage existing host scripts, replace the volume entry in `compose.yaml` with a bind mount:
+
+```yaml
+    volumes:
+      - ./modules:/app/modules
+```
+
+The host directory must exist and UID/GID `10001` must have read and write access to it. On Linux, for a directory dedicated to Medusa:
+
+```bash
+sudo chown -R 10001:10001 ./modules
+docker compose up -d
+```
+
+This changes ownership of the host files. Alternatively, set `user: "1000:1000"` on the Compose service, substituting the owner's UID and GID, when using a bind mount.
+
+The bundled `medusa.conf` uses `base_dir = ./modules`, which resolves to `/app/modules` in the container. To supply a different configuration, mount it read-only at `/app/medusa.conf` and mount a writable script directory at the corresponding container path.
+
+### Script Dependencies and Host Resources
+
+Scripts execute inside the container using its Python installation. Host Python packages, files outside mounted directories, and host services are not automatically available. Install extra script dependencies in a derived image, for example:
+
+```dockerfile
+FROM medusa:local
+USER root
+COPY script-requirements.txt /tmp/script-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/script-requirements.txt
+USER medusa
+```
+
+Build the base image first with `docker build -t medusa:local .`, then build the derived image with a separate Dockerfile and select that image in Compose. Add any required system packages in the derived image as well. Mount only the host directories your scripts need. All managed scripts share the application's container and permissions.
+
+### Managing the Container
+
+```bash
+docker compose logs -f medusa
+docker compose restart medusa
+docker compose down
+```
+
+After updating the repository, rebuild with `docker compose up -d --build`.
+
+You can also run without Compose:
+
+```bash
+docker build -t medusa:local .
+docker volume create medusa-scripts
+docker run -d --name medusa --init --restart unless-stopped \
+    -p 127.0.0.1:8000:8000 \
+    --env-file .env \
+    --mount source=medusa-scripts,target=/app/modules \
+    medusa:local
+```
+
+Gunicorn uses one worker with four threads so other requests can be served while a script runs. To adjust concurrency or other Gunicorn settings, supply `GUNICORN_CMD_ARGS` as a container environment variable. Scripts still run synchronously; a busy set of threads can delay other requests.
+
 ## Configuration
 
 Medusa uses `medusa.conf` for configuration.
@@ -486,7 +568,7 @@ Production deployments should use a persistent, unpredictable Flask secret key r
 
 The secret key is used by Flask and Flask-WTF for security-related functionality such as session and CSRF protection.
 
-If the application is modified to read the secret key from an environment variable, a systemd service can provide it using an `EnvironmentFile`:
+Set `FLASK_SECRET_KEY` to use the same key across workers and restarts. Without it, Medusa generates a temporary key at startup. A systemd service can provide it using an `EnvironmentFile`:
 
 ```ini
 [Service]
